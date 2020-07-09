@@ -1,4 +1,11 @@
 # rust-pong
+Amethyst Pong Tutorial
+
+## Info
+
+This project follows the Amethyst pong tutorial :
+
+https://book.amethyst.rs/master/pong-tutorial.html
 
 ## How to run
 
