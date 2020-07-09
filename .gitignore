@@ -1,0 +1,13 @@
+# Unwanted files
+target
+
+# Backup files
+.DS_Store
+thumbs.db
+*~
+*.rs.bk
+*.swp
+
+# clion
+.idea
+*.iml
