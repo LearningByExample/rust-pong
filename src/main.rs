@@ -4,16 +4,16 @@ use amethyst::{
     prelude::*,
     renderer::{
         plugins::{RenderFlat2D, RenderToWindow},
-        types::DefaultBackend,
         RenderingBundle,
+        types::DefaultBackend,
     },
     utils::application_root_dir,
 };
 
+use crate::pong::PongGame;
+
 mod pong;
 mod systems;
-
-use crate::pong::PongGame;
 
 fn main() -> amethyst::Result<()> {
     amethyst::start_logger(Default::default());
@@ -40,7 +40,8 @@ fn main() -> amethyst::Result<()> {
         // Add the transform bundle which handles tracking entity positions
         .with_bundle(TransformBundle::new())?
         .with_bundle(input_bundle)?
-        .with(systems::PaddleSystem, "paddle_system", &["input_system"]);
+        .with(systems::PaddleSystem, "paddle_system", &["input_system"])
+        .with(systems::MoveBallsSystem, "ball_system", &[]);
 
     let assets_dir = app_root.join("assets");
     let mut game = Application::new(assets_dir, PongGame, game_data)?;
