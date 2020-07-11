@@ -1,5 +1,5 @@
 use amethyst::{
-    assets::{AssetStorage, Loader, Handle},
+    assets::{AssetStorage, Handle, Loader},
     core::transform::Transform,
     ecs::prelude::{Component, DenseVecStorage},
     prelude::*,
@@ -12,7 +12,7 @@ const IDENTITY: f32 = 1.0;
 const Z_FRONT: f32 = 0.0;
 
 const ARENA_WIDTH: f32 = 100.0;
-const ARENA_HEIGHT: f32 = 100.0;
+pub const ARENA_HEIGHT: f32 = 100.0;
 const HALVE_WIDTH: f32 = ARENA_WIDTH * 0.5;
 const HALVE_HEIGHT: f32 = ARENA_HEIGHT * 0.5;
 
@@ -134,8 +134,6 @@ impl SimpleState for PongGame {
 
         // Load the spritesheet necessary to render the graphics.
         let sprite_sheet_handle = load_sprite_sheet(world);
-
-        world.register::<Paddle>();
 
         initialise_paddles(world, sprite_sheet_handle);
         initialise_camera(world);
