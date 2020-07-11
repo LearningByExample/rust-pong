@@ -1,12 +1,16 @@
 use amethyst::{
     assets::{AssetStorage, Handle, Loader},
+    core::timing::Time,
     core::transform::Transform,
     ecs::prelude::{Component, DenseVecStorage},
     prelude::*,
     renderer::{Camera, ImageFormat, SpriteRender, SpriteSheet, SpriteSheetFormat, Texture},
 };
 
-pub struct PongGame;
+pub struct PongGame {
+    ball_spawn_timer: Option<f32>,
+    sprite_sheet_handle: Option<Handle<SpriteSheet>>,
+}
 
 const Z_FRONT: f32 = 1.0;
 const Z_BACK: f32 = 0.0;
@@ -33,6 +37,7 @@ const BALL_VELOCITY_X: f32 = 75.0;
 const BALL_VELOCITY_Y: f32 = 50.0;
 const BALL_Z: f32 = Z_BACK;
 const BALL_SPRITE_NUM: usize = 1;
+const BALL_SPAWN_TIME: f32 = 2.0;
 
 const GAME_SPRITE_SHEET_TEXTURE: &str = "texture/pong_spritesheet.png";
 const GAME_SPRITE_SHEET_RON: &str = "texture/pong_spritesheet.ron";
@@ -168,17 +173,41 @@ fn load_sprite_sheet(world: &mut World) -> Handle<SpriteSheet> {
     sprite_sheet_handle
 }
 
+impl PongGame {
+    pub(crate) fn new() -> PongGame {
+        PongGame {
+            ball_spawn_timer: Some(BALL_SPAWN_TIME),
+            sprite_sheet_handle: None,
+        }
+    }
+}
+
 impl SimpleState for PongGame {
     fn on_start(&mut self, data: StateData<'_, GameData<'_, '_>>) {
         let world = data.world;
 
         // Load the spritesheet necessary to render the graphics.
-        let sprite_sheet_handle = load_sprite_sheet(world);
+        self.sprite_sheet_handle.replace(load_sprite_sheet(world));
 
-        world.register::<Ball>(); // <- add this line temporarily
-
-        initialise_ball(world, sprite_sheet_handle.clone());
-        initialise_paddles(world, sprite_sheet_handle);
+        initialise_paddles(world, self.sprite_sheet_handle.clone().unwrap());
         initialise_camera(world);
+    }
+
+    fn update(&mut self, data: &mut StateData<'_, GameData<'_, '_>>) -> SimpleTrans {
+        if let Some(mut timer) = self.ball_spawn_timer.take() {
+            // If the timer isn't expired yet, subtract the time that passed since the last update.
+            {
+                timer -= data.world.fetch::<Time>().delta_seconds();
+            }
+            if timer <= 0.0 {
+                // When timer expire, spawn the ball
+                // Since we are not put back the timer it will not enter on the if ... take()
+                initialise_ball(data.world, self.sprite_sheet_handle.clone().unwrap());
+            } else {
+                // If timer is not expired yet, put it back onto the state.
+                self.ball_spawn_timer.replace(timer);
+            }
+        }
+        Trans::None
     }
 }

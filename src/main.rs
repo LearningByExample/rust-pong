@@ -45,7 +45,7 @@ fn main() -> amethyst::Result<()> {
         .with(systems::BounceSystem, "bounce_system", &[]);
 
     let assets_dir = app_root.join("assets");
-    let mut game = Application::new(assets_dir, PongGame, game_data)?;
+    let mut game = Application::new(assets_dir, PongGame::new(), game_data)?;
 
     game.run();
 
