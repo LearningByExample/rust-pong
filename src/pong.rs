@@ -8,13 +8,15 @@ use amethyst::{
 
 pub struct PongGame;
 
-const IDENTITY: f32 = 1.0;
-const Z_FRONT: f32 = 0.0;
+const Z_FRONT: f32 = 1.0;
+const Z_BACK: f32 = 0.0;
 
 const ARENA_WIDTH: f32 = 100.0;
+
 pub const ARENA_HEIGHT: f32 = 100.0;
 const HALVE_WIDTH: f32 = ARENA_WIDTH * 0.5;
 const HALVE_HEIGHT: f32 = ARENA_HEIGHT * 0.5;
+const CAMERA_Z: f32 = Z_FRONT;
 
 const PADDLE_WIDTH: f32 = 4.0;
 const PADDLE_HEIGHT: f32 = 16.0;
@@ -23,8 +25,14 @@ const PADDLE_PIVOT_X: f32 = PADDLE_WIDTH * 0.5;
 const PADDLE_LEFT_X: f32 = PADDLE_PIVOT_X;
 const PADDLE_RIGHT_X: f32 = ARENA_WIDTH - PADDLE_PIVOT_X;
 const PADDLE_INITIAL_Y: f32 = HALVE_HEIGHT;
-const PADDLE_Z: f32 = Z_FRONT;
+const PADDLE_Z: f32 = Z_BACK;
 const PADDLE_SPRITE_NUM: usize = 0;
+
+const BALL_RADIUS: f32 = 2.0;
+const BALL_VELOCITY_X: f32 = 75.0;
+const BALL_VELOCITY_Y: f32 = 50.0;
+const BALL_Z: f32 = Z_BACK;
+const BALL_SPRITE_NUM: usize = 1;
 
 const GAME_SPRITE_SHEET_TEXTURE: &str = "texture/pong_spritesheet.png";
 const GAME_SPRITE_SHEET_RON: &str = "texture/pong_spritesheet.ron";
@@ -32,7 +40,7 @@ const GAME_SPRITE_SHEET_RON: &str = "texture/pong_spritesheet.ron";
 fn initialise_camera(world: &mut World) {
     // Setup camera in a way that our screen covers whole arena and (0, 0) is in the bottom left.
     let mut transform = Transform::default();
-    transform.set_translation_xyz(HALVE_WIDTH, HALVE_HEIGHT, IDENTITY);
+    transform.set_translation_xyz(HALVE_WIDTH, HALVE_HEIGHT, CAMERA_Z);
 
     world
         .create_entity()
@@ -67,6 +75,15 @@ impl Component for Paddle {
     type Storage = DenseVecStorage<Self>;
 }
 
+pub struct Ball {
+    pub velocity: [f32; 2],
+    pub radius: f32,
+}
+
+impl Component for Ball {
+    type Storage = DenseVecStorage<Self>;
+}
+
 /// Initialises one paddle on the left, and one paddle on the right.
 fn initialise_paddles(world: &mut World, sprite_sheet_handle: Handle<SpriteSheet>) {
     let mut left_transform = Transform::default();
@@ -96,6 +113,29 @@ fn initialise_paddles(world: &mut World, sprite_sheet_handle: Handle<SpriteSheet
         .with(sprite_render)
         .with(Paddle::new(Side::Right))
         .with(right_transform)
+        .build();
+}
+
+/// Initialises one ball in the middle-ish of the arena.
+fn initialise_ball(world: &mut World, sprite_sheet_handle: Handle<SpriteSheet>) {
+    // Create the translation.
+    let mut local_transform = Transform::default();
+    local_transform.set_translation_xyz(HALVE_WIDTH, HALVE_HEIGHT, BALL_Z);
+
+    // Assign the sprite for the ball
+    let sprite_render = SpriteRender {
+        sprite_sheet: sprite_sheet_handle,
+        sprite_number: BALL_SPRITE_NUM,
+    };
+
+    world
+        .create_entity()
+        .with(sprite_render)
+        .with(Ball {
+            radius: BALL_RADIUS,
+            velocity: [BALL_VELOCITY_X, BALL_VELOCITY_Y],
+        })
+        .with(local_transform)
         .build();
 }
 
@@ -135,6 +175,9 @@ impl SimpleState for PongGame {
         // Load the spritesheet necessary to render the graphics.
         let sprite_sheet_handle = load_sprite_sheet(world);
 
+        world.register::<Ball>(); // <- add this line temporarily
+
+        initialise_ball(world, sprite_sheet_handle.clone());
         initialise_paddles(world, sprite_sheet_handle);
         initialise_camera(world);
     }
