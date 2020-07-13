@@ -15,8 +15,7 @@ pub struct PongGame {
 const Z_FRONT: f32 = 1.0;
 const Z_BACK: f32 = 0.0;
 
-const ARENA_WIDTH: f32 = 100.0;
-
+pub const ARENA_WIDTH: f32 = 100.0;
 pub const ARENA_HEIGHT: f32 = 100.0;
 const HALVE_WIDTH: f32 = ARENA_WIDTH * 0.5;
 const HALVE_HEIGHT: f32 = ARENA_HEIGHT * 0.5;
