@@ -1,6 +1,8 @@
 use amethyst::{
-    core::timing::Time,
-    core::transform::Transform,
+    core::{
+        timing::Time,
+        transform::Transform,
+    },
     derive::SystemDesc,
     ecs::prelude::{Join, Read, ReadStorage, System, SystemData, WriteStorage},
 };

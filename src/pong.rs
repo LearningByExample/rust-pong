@@ -1,7 +1,9 @@
 use amethyst::{
     assets::{AssetStorage, Handle, Loader},
-    core::timing::Time,
-    core::transform::Transform,
+    core::{
+        timing::Time,
+        transform::Transform,
+    },
     ecs::prelude::{Component, DenseVecStorage},
     prelude::*,
     renderer::{Camera, ImageFormat, SpriteRender, SpriteSheet, SpriteSheetFormat, Texture},
