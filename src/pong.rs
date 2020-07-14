@@ -1,9 +1,6 @@
 use amethyst::{
     assets::{AssetStorage, Handle, Loader},
-    core::{
-        timing::Time,
-        transform::Transform,
-    },
+    core::{timing::Time, transform::Transform},
     ecs::prelude::{Component, DenseVecStorage, Entity},
     prelude::*,
     renderer::{Camera, ImageFormat, SpriteRender, SpriteSheet, SpriteSheetFormat, Texture},
@@ -168,12 +165,24 @@ fn initialise_scoreboard(world: &mut World) {
         &world.read_resource(),
     );
     let p1_transform = UiTransform::new(
-        "P1".to_string(), Anchor::TopMiddle, Anchor::TopMiddle,
-        -50., -50., 1., 200., 50.,
+        "P1".to_string(),
+        Anchor::TopMiddle,
+        Anchor::TopMiddle,
+        -50.,
+        -50.,
+        1.,
+        200.,
+        50.,
     );
     let p2_transform = UiTransform::new(
-        "P2".to_string(), Anchor::TopMiddle, Anchor::TopMiddle,
-        50., -50., 1., 200., 50.,
+        "P2".to_string(),
+        Anchor::TopMiddle,
+        Anchor::TopMiddle,
+        50.,
+        -50.,
+        1.,
+        200.,
+        50.,
     );
 
     let p1_score = world
@@ -195,7 +204,6 @@ fn initialise_scoreboard(world: &mut World) {
 
     world.insert(ScoreText { p1_score, p2_score });
 }
-
 
 fn load_sprite_sheet(world: &mut World) -> Handle<SpriteSheet> {
     let loader = world.read_resource::<Loader>();
