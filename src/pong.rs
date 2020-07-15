@@ -34,8 +34,11 @@ const PADDLE_Z: f32 = Z_BACK;
 const PADDLE_SPRITE_NUM: usize = 0;
 
 const BALL_RADIUS: f32 = 2.0;
-const BALL_VELOCITY_X: f32 = 25.0;
+const BALL_VELOCITY_X: f32 = 30.0;
 const BALL_VELOCITY_Y: f32 = 15.0;
+const BALL_ACCELERATION: f32 = 0.2;
+const MAX_BALL_VELOCITY_X: f32 = BALL_VELOCITY_X * 2.0;
+const MAX_BALL_VELOCITY_Y: f32 = BALL_VELOCITY_Y * 2.0;
 pub const BALL_Z: f32 = Z_BACK;
 const BALL_SPRITE_NUM: usize = 1;
 
@@ -88,6 +91,7 @@ pub enum BallState {
 
 pub struct Ball {
     pub velocity: [f32; 2],
+    pub acceleration: f32,
     pub radius: f32,
     pub state: BallState,
     pub waiting_time: f32,
@@ -98,6 +102,11 @@ impl Ball {
         self.state = BallState::Waiting;
         self.waiting_time = 2.0;
         self.velocity = [BALL_VELOCITY_X, BALL_VELOCITY_Y]
+    }
+    pub fn accelerate(&mut self) {
+        let velocity_x = (self.velocity[0] + (self.velocity[0] * self.acceleration)).min(MAX_BALL_VELOCITY_X);
+        let velocity_y = (self.velocity[1] + (self.velocity[1] * self.acceleration)).min(MAX_BALL_VELOCITY_Y);
+        self.velocity = [velocity_x, velocity_y]
     }
 }
 
@@ -172,6 +181,7 @@ fn initialise_ball(world: &mut World, sprite_sheet_handle: Handle<SpriteSheet>) 
         .with(Ball {
             radius: BALL_RADIUS,
             velocity: [BALL_VELOCITY_X, BALL_VELOCITY_Y],
+            acceleration: BALL_ACCELERATION,
             state: BallState::Waiting,
             waiting_time: 2.0,
         })

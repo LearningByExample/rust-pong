@@ -39,6 +39,7 @@ impl<'s> System<'s> for BounceSystem {
                 || (ball_y >= ARENA_HEIGHT - ball.radius && ball.velocity[1] > 0.0)
             {
                 ball.velocity[1] = -ball.velocity[1];
+                ball.accelerate();
                 play_bounce(&*sounds, &storage, audio_output.as_ref().map(|o| o.deref()));
             }
 
@@ -64,6 +65,7 @@ impl<'s> System<'s> for BounceSystem {
                         || (paddle.side == Side::Right && ball.velocity[0] > 0.0)
                     {
                         ball.velocity[0] = -ball.velocity[0];
+                        ball.accelerate();
                         play_bounce(&*sounds, &storage, audio_output.as_ref().map(|o| o.deref()));
                     }
                 }
