@@ -10,7 +10,7 @@ use amethyst::{
 };
 
 use crate::audio::{play_score_sound, Sounds};
-use crate::pong::{ARENA_WIDTH, Ball, ScoreBoard, ScoreText};
+use crate::pong::{ARENA_WIDTH, Ball, BALL_Z, HALVE_HEIGHT, HALVE_WIDTH, ScoreBoard, ScoreText};
 
 #[derive(SystemDesc)]
 pub struct WinnerSystem;
@@ -30,15 +30,15 @@ impl<'s> System<'s> for WinnerSystem {
     fn run(
         &mut self,
         (
-        mut balls,
-        mut locals,
-        mut ui_text,
-        mut scores,
-        score_text,
-        storage,
-        sounds,
-        audio_output,
-    ): Self::SystemData,
+            mut balls,
+            mut locals,
+            mut ui_text,
+            mut scores,
+            score_text,
+            storage,
+            sounds,
+            audio_output,
+        ): Self::SystemData,
     ) {
         for (ball, transform) in (&mut balls, &mut locals).join() {
             let ball_x = transform.translation().x;
@@ -65,14 +65,11 @@ impl<'s> System<'s> for WinnerSystem {
             };
 
             if did_hit {
-                ball.velocity[0] = -ball.velocity[0]; // Reverse Direction
-                transform.set_translation_x(ARENA_WIDTH / 2.0); // Reset Position
-                                                                // Print the scoreboard.
+                transform.set_translation_xyz(HALVE_WIDTH, HALVE_HEIGHT, BALL_Z);
+                let direction = ball.velocity[0] / -ball.velocity[0]; // Reverse X-Direction
+                ball.wait();
+                ball.velocity = [ball.velocity[0] * direction, ball.velocity[1]];
                 play_score_sound(&*sounds, &storage, audio_output.as_ref().map(|o| o.deref()));
-                println!(
-                    "Score: | {:^3} | {:^3} |",
-                    scores.score_left, scores.score_right
-                );
             }
         }
     }

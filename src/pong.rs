@@ -1,8 +1,9 @@
 use amethyst::{
     assets::{AssetStorage, Handle, Loader},
-    core::{timing::Time, transform::Transform},
+    core::transform::Transform,
     ecs::prelude::{Component, DenseVecStorage, Entity},
     prelude::*,
+    renderer::{palette::Srgba, resources::Tint},
     renderer::{Camera, ImageFormat, SpriteRender, SpriteSheet, SpriteSheetFormat, Texture},
     ui::{Anchor, TtfFormat, UiText, UiTransform},
 };
@@ -10,7 +11,6 @@ use amethyst::{
 use crate::audio::initialise_audio;
 
 pub struct PongGame {
-    ball_spawn_timer: Option<f32>,
     sprite_sheet_handle: Option<Handle<SpriteSheet>>,
 }
 
@@ -19,8 +19,8 @@ const Z_BACK: f32 = 0.0;
 
 pub const ARENA_WIDTH: f32 = 100.0;
 pub const ARENA_HEIGHT: f32 = 100.0;
-const HALVE_WIDTH: f32 = ARENA_WIDTH * 0.5;
-const HALVE_HEIGHT: f32 = ARENA_HEIGHT * 0.5;
+pub const HALVE_WIDTH: f32 = ARENA_WIDTH * 0.5;
+pub const HALVE_HEIGHT: f32 = ARENA_HEIGHT * 0.5;
 const CAMERA_Z: f32 = Z_FRONT;
 
 const PADDLE_WIDTH: f32 = 4.0;
@@ -34,11 +34,10 @@ const PADDLE_Z: f32 = Z_BACK;
 const PADDLE_SPRITE_NUM: usize = 0;
 
 const BALL_RADIUS: f32 = 2.0;
-const BALL_VELOCITY_X: f32 = 75.0;
-const BALL_VELOCITY_Y: f32 = 50.0;
-const BALL_Z: f32 = Z_BACK;
+const BALL_VELOCITY_X: f32 = 25.0;
+const BALL_VELOCITY_Y: f32 = 15.0;
+pub const BALL_Z: f32 = Z_BACK;
 const BALL_SPRITE_NUM: usize = 1;
-const BALL_SPAWN_TIME: f32 = 2.0;
 
 const GAME_SPRITE_SHEET_TEXTURE: &str = "texture/pong_spritesheet.png";
 const GAME_SPRITE_SHEET_RON: &str = "texture/pong_spritesheet.ron";
@@ -81,9 +80,25 @@ impl Component for Paddle {
     type Storage = DenseVecStorage<Self>;
 }
 
+#[derive(PartialEq, Eq)]
+pub enum BallState {
+    Waiting,
+    Moving,
+}
+
 pub struct Ball {
     pub velocity: [f32; 2],
     pub radius: f32,
+    pub state: BallState,
+    pub waiting_time: f32,
+}
+
+impl Ball {
+    pub fn wait(&mut self) {
+        self.state = BallState::Waiting;
+        self.waiting_time = 2.0;
+        self.velocity = [BALL_VELOCITY_X, BALL_VELOCITY_Y]
+    }
 }
 
 impl Component for Ball {
@@ -147,14 +162,21 @@ fn initialise_ball(world: &mut World, sprite_sheet_handle: Handle<SpriteSheet>) 
         sprite_number: BALL_SPRITE_NUM,
     };
 
+    // White shows the sprite as normal.
+    // You can change the color at any point to modify the sprite's tint.
+    let tint = Tint(Srgba::new(1.0, 1.0, 1.0, 1.0));
+
     world
         .create_entity()
         .with(sprite_render)
         .with(Ball {
             radius: BALL_RADIUS,
             velocity: [BALL_VELOCITY_X, BALL_VELOCITY_Y],
+            state: BallState::Waiting,
+            waiting_time: 2.0,
         })
         .with(local_transform)
+        .with(tint)
         .build();
 }
 
@@ -239,7 +261,6 @@ fn load_sprite_sheet(world: &mut World) -> Handle<SpriteSheet> {
 impl PongGame {
     pub(crate) fn new() -> PongGame {
         PongGame {
-            ball_spawn_timer: Some(BALL_SPAWN_TIME),
             sprite_sheet_handle: None,
         }
     }
@@ -253,26 +274,9 @@ impl SimpleState for PongGame {
         self.sprite_sheet_handle.replace(load_sprite_sheet(world));
 
         initialise_paddles(world, self.sprite_sheet_handle.clone().unwrap());
+        initialise_ball(world, self.sprite_sheet_handle.clone().unwrap());
         initialise_camera(world);
         initialise_scoreboard(world);
         initialise_audio(world);
-    }
-
-    fn update(&mut self, data: &mut StateData<'_, GameData<'_, '_>>) -> SimpleTrans {
-        if let Some(mut timer) = self.ball_spawn_timer.take() {
-            // If the timer isn't expired yet, subtract the time that passed since the last update.
-            {
-                timer -= data.world.fetch::<Time>().delta_seconds();
-            }
-            if timer <= 0.0 {
-                // When timer expire, spawn the ball
-                // Since we are not put back the timer it will not enter on the if ... take()
-                initialise_ball(data.world, self.sprite_sheet_handle.clone().unwrap());
-            } else {
-                // If timer is not expired yet, put it back onto the state.
-                self.ball_spawn_timer.replace(timer);
-            }
-        }
-        Trans::None
     }
 }
