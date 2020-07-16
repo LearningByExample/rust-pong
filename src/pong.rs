@@ -316,7 +316,6 @@ impl CyclingColor {
     }
 }
 
-
 impl PongGame {
     pub(crate) fn new() -> PongGame {
         PongGame {

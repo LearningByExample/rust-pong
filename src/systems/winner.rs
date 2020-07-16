@@ -10,7 +10,9 @@ use amethyst::{
 };
 
 use crate::audio::{play_score_sound, Sounds};
-use crate::pong::{ARENA_WIDTH, Ball, BALL_Z, CyclingColor, HALVE_HEIGHT, HALVE_WIDTH, ScoreBoard, ScoreText};
+use crate::pong::{
+    ARENA_WIDTH, Ball, BALL_Z, CyclingColor, HALVE_HEIGHT, HALVE_WIDTH, ScoreBoard, ScoreText,
+};
 
 #[derive(SystemDesc)]
 pub struct WinnerSystem;

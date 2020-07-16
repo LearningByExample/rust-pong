@@ -1,3 +1,5 @@
+use std::mem;
+
 use amethyst::{
     core::timing::Time,
     derive::SystemDesc,
@@ -19,27 +21,23 @@ impl<'s> System<'s> for CyclingColorSystem {
 
     fn run(&mut self, (mut tints, mut cycling_colors, time): Self::SystemData) {
         let time_delta = time.delta_seconds();
-        for (tint, cycling) in (&mut tints, &mut cycling_colors).join() {
-            match cycling.state {
+        for (tint, cycle) in (&mut tints, &mut cycling_colors).join() {
+            match cycle.state {
                 CyclingState::Stopped => {
-                    tint.0 = cycling.from;
+                    tint.0 = cycle.from;
                 }
                 CyclingState::Cycling => {
-                    cycling.current_cycle = (cycling.current_cycle - time_delta).max(0.0);
-
-
-                    if cycling.current_cycle == 0.0 {
-                        let aux = cycling.from;
-                        cycling.from = cycling.to;
-                        cycling.to = aux;
-                        cycling.current_cycle = cycling.cycle_time;
+                    cycle.current_cycle = (cycle.current_cycle - time_delta).max(0.0);
+                    if cycle.current_cycle == 0.0 {
+                        mem::swap(&mut cycle.from, &mut cycle.to);
+                        cycle.current_cycle = cycle.cycle_time;
                     } else {
-                        let delta = cycling.current_cycle / cycling.cycle_time;
+                        let delta = cycle.current_cycle / cycle.cycle_time;
 
-                        let r = cycling.from.red + ((cycling.to.red - cycling.from.red) * delta);
-                        let g = cycling.from.green + ((cycling.to.green - cycling.from.green) * delta);
-                        let b = cycling.from.blue + ((cycling.to.blue - cycling.from.blue) * delta);
-                        let a = cycling.from.alpha + ((cycling.to.alpha - cycling.from.alpha) * delta);
+                        let r = cycle.from.red + ((cycle.to.red - cycle.from.red) * delta);
+                        let g = cycle.from.green + ((cycle.to.green - cycle.from.green) * delta);
+                        let b = cycle.from.blue + ((cycle.to.blue - cycle.from.blue) * delta);
+                        let a = cycle.from.alpha + ((cycle.to.alpha - cycle.from.alpha) * delta);
 
                         tint.0 = Srgba::new(r, g, b, a);
                     }
