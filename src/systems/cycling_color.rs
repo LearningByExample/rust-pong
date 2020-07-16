@@ -28,18 +28,19 @@ impl<'s> System<'s> for CyclingColorSystem {
                 }
                 CyclingState::Cycling => {
                     cycle.current_cycle = (cycle.current_cycle - time_delta).max(0.0);
+
+                    let delta = cycle.current_cycle / cycle.cycle_time;
+
+                    let r = cycle.from.red + ((cycle.to.red - cycle.from.red) * delta);
+                    let g = cycle.from.green + ((cycle.to.green - cycle.from.green) * delta);
+                    let b = cycle.from.blue + ((cycle.to.blue - cycle.from.blue) * delta);
+                    let a = cycle.from.alpha + ((cycle.to.alpha - cycle.from.alpha) * delta);
+
+                    tint.0 = Srgba::new(r, g, b, a);
+
                     if cycle.current_cycle == 0.0 {
                         mem::swap(&mut cycle.from, &mut cycle.to);
                         cycle.current_cycle = cycle.cycle_time;
-                    } else {
-                        let delta = cycle.current_cycle / cycle.cycle_time;
-
-                        let r = cycle.from.red + ((cycle.to.red - cycle.from.red) * delta);
-                        let g = cycle.from.green + ((cycle.to.green - cycle.from.green) * delta);
-                        let b = cycle.from.blue + ((cycle.to.blue - cycle.from.blue) * delta);
-                        let a = cycle.from.alpha + ((cycle.to.alpha - cycle.from.alpha) * delta);
-
-                        tint.0 = Srgba::new(r, g, b, a);
                     }
                 }
             }
