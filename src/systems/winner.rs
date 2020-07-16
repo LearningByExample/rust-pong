@@ -10,7 +10,7 @@ use amethyst::{
 };
 
 use crate::audio::{play_score_sound, Sounds};
-use crate::pong::{ARENA_WIDTH, Ball, BALL_Z, HALVE_HEIGHT, HALVE_WIDTH, ScoreBoard, ScoreText};
+use crate::pong::{ARENA_WIDTH, Ball, BALL_Z, CyclingColor, HALVE_HEIGHT, HALVE_WIDTH, ScoreBoard, ScoreText};
 
 #[derive(SystemDesc)]
 pub struct WinnerSystem;
@@ -19,6 +19,7 @@ impl<'s> System<'s> for WinnerSystem {
     type SystemData = (
         WriteStorage<'s, Ball>,
         WriteStorage<'s, Transform>,
+        WriteStorage<'s, CyclingColor>,
         WriteStorage<'s, UiText>,
         Write<'s, ScoreBoard>,
         ReadExpect<'s, ScoreText>,
@@ -32,6 +33,7 @@ impl<'s> System<'s> for WinnerSystem {
         (
             mut balls,
             mut locals,
+            mut cyclings,
             mut ui_text,
             mut scores,
             score_text,
@@ -40,7 +42,7 @@ impl<'s> System<'s> for WinnerSystem {
             audio_output,
         ): Self::SystemData,
     ) {
-        for (ball, transform) in (&mut balls, &mut locals).join() {
+        for (ball, transform, cycling) in (&mut balls, &mut locals, &mut cyclings).join() {
             let ball_x = transform.translation().x;
 
             let did_hit = if ball_x <= ball.radius {
@@ -68,6 +70,7 @@ impl<'s> System<'s> for WinnerSystem {
                 transform.set_translation_xyz(HALVE_WIDTH, HALVE_HEIGHT, BALL_Z);
                 let direction = ball.velocity[0] / -ball.velocity[0]; // Reverse X-Direction
                 ball.wait();
+                cycling.start();
                 ball.velocity = [ball.velocity[0] * direction, ball.velocity[1]];
                 play_score_sound(&*sounds, &storage, audio_output.as_ref().map(|o| o.deref()));
             }

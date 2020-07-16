@@ -104,8 +104,10 @@ impl Ball {
         self.velocity = [BALL_VELOCITY_X, BALL_VELOCITY_Y]
     }
     pub fn accelerate(&mut self) {
-        let velocity_x = (self.velocity[0] + (self.velocity[0] * self.acceleration)).min(MAX_BALL_VELOCITY_X);
-        let velocity_y = (self.velocity[1] + (self.velocity[1] * self.acceleration)).min(MAX_BALL_VELOCITY_Y);
+        let velocity_x =
+            (self.velocity[0] + (self.velocity[0] * self.acceleration)).min(MAX_BALL_VELOCITY_X);
+        let velocity_y =
+            (self.velocity[1] + (self.velocity[1] * self.acceleration)).min(MAX_BALL_VELOCITY_Y);
         self.velocity = [velocity_x, velocity_y]
     }
 }
@@ -174,6 +176,8 @@ fn initialise_ball(world: &mut World, sprite_sheet_handle: Handle<SpriteSheet>) 
     // White shows the sprite as normal.
     // You can change the color at any point to modify the sprite's tint.
     let tint = Tint(Srgba::new(1.0, 1.0, 1.0, 1.0));
+    let mut cycling = CyclingColor::new(Srgba::new(1.0, 0.0, 0.0, 1.0), 0.5);
+    cycling.start();
 
     world
         .create_entity()
@@ -187,6 +191,7 @@ fn initialise_ball(world: &mut World, sprite_sheet_handle: Handle<SpriteSheet>) 
         })
         .with(local_transform)
         .with(tint)
+        .with(cycling)
         .build();
 }
 
@@ -267,6 +272,50 @@ fn load_sprite_sheet(world: &mut World) -> Handle<SpriteSheet> {
 
     sprite_sheet_handle
 }
+
+#[derive(PartialEq, Eq)]
+pub enum CyclingState {
+    Stopped,
+    Cycling,
+}
+
+pub struct CyclingColor {
+    pub state: CyclingState,
+    pub cycle_time: f32,
+    pub color: Srgba,
+    pub from: Srgba,
+    pub to: Srgba,
+    pub current_cycle: f32,
+}
+
+impl Component for CyclingColor {
+    type Storage = DenseVecStorage<Self>;
+}
+
+impl CyclingColor {
+    fn new(to: Srgba, cycle_time: f32) -> CyclingColor {
+        CyclingColor {
+            state: CyclingState::Stopped,
+            color: to,
+            from: Srgba::new(1.0, 1.0, 1.0, 1.0),
+            to,
+            cycle_time: cycle_time / 2.0,
+            current_cycle: 0.0,
+        }
+    }
+
+    pub fn stop(&mut self) {
+        self.state = CyclingState::Stopped;
+    }
+
+    pub fn start(&mut self) {
+        self.state = CyclingState::Cycling;
+        self.from = Srgba::new(1.0, 1.0, 1.0, 1.0);
+        self.to = self.color;
+        self.current_cycle = 0.0;
+    }
+}
+
 
 impl PongGame {
     pub(crate) fn new() -> PongGame {

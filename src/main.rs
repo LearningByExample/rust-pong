@@ -55,6 +55,7 @@ fn main() -> amethyst::Result<()> {
         )
         .with(systems::PaddleSystem, "paddle_system", &["input_system"])
         .with(systems::MoveBallsSystem, "ball_system", &[])
+        .with(systems::CyclingColorSystem, "cycling_color_system", &["ball_system"])
         .with(systems::BounceSystem, "bounce_system", &[])
         .with(systems::WinnerSystem, "winner_system", &["ball_system"]);
 
